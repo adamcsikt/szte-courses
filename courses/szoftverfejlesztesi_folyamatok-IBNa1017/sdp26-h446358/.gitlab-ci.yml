@@ -1,0 +1,34 @@
+stages:
+  - feature-1
+  - feature-2
+
+default:
+  image: python:3.13
+  before_script:
+    - pip3 install pytest colorama --quiet
+
+mentes_betoltes_load_save_delete:
+  stage: feature-1
+  tags:
+    - test
+  script:
+    - python3 -m pytest test/test_mentes_betoltes.py -v 2>&1 | tee test_mentes_betoltes.log
+  allow_failure: false
+  artifacts:
+    when: always
+    paths:
+      - test_mentes_betoltes.log
+    expire_in: 2 weeks
+
+tippbevitel_lepesenkenti_bevitel_visszavonassal:
+  stage: feature-2
+  tags:
+    - test
+  script:
+    - python3 -m pytest test/test_tippbevitel.py -v 2>&1 | tee test_tippbevitel.log
+  allow_failure: false
+  artifacts:
+    when: always
+    paths:
+      - test_tippbevitel.log
+    expire_in: 2 weeks
