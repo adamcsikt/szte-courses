@@ -1,12 +1,41 @@
-# Windows 10 LTSC Development VM
+# Standalone Windows 10 LTSC VM
 
-This container provisions a fully hardware-accelerated Windows 10 LTSC virtual machine using KVM passthrough. It is attached to the shared university bridge network, allowing direct access to the isolated PostgreSQL and NGINX containers running on the host.
+This container provisions a fully hardware-accelerated Windows 10 LTSC virtual machine using Docker and KVM passthrough. 
+
+## Standalone `docker-compose.yml` Configuration
+Unlike the monorepo setup, this standalone version uses Docker's default bridge network and exposes ports directly to the host.
+
+```yaml
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows10-ltsc
+    privileged: true
+    environment:
+      VERSION: "10l"
+      RAM_SIZE: "6G"
+      CPU_CORES: "4"
+      CPU_MODEL: "EPYC-Milan"
+      TZ: "Europe/Budapest"
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8006:8006          # Re-exposed for standalone Web UI access
+      - 3389:3389/tcp
+      - 3389:3389/udp
+    volumes:
+      - ./win_storage_docker:/storage
+      - ./shared_folder:/shared:z
+      - ./oem:/oem:z
+    stop_grace_period: 2m
+```
 
 ## Prerequisites
 
-1. **Host Network:** The `uni-infra` master project must be running first to establish the `uni-infra_public-network` bridge.
-2. **KVM Enabled:** The host must support and have KVM enabled (`/dev/kvm`).
-3. **Drive Health / Btrfs Configuration (Fedora/Linux):** 
+1. **KVM Enabled:** The host system must support and have KVM enabled (`/dev/kvm`).
+2. **Drive Health / Btrfs Configuration (Fedora/Linux):** 
    If the host uses the Btrfs file system, you **must** disable Copy-on-Write (CoW) on the storage folder before the VM disk is generated. Because a virtual machine disk is a massive, constantly changing file, CoW causes severe disk fragmentation. This cripples IO performance and causes excessive write amplification that rapidly burns out your SSD's lifespan.
 
     ```bash
@@ -15,6 +44,8 @@ This container provisions a fully hardware-accelerated Windows 10 LTSC virtual m
     ```
 
 ## Usage
+
+Because this VM is resource-heavy (4 Cores, 6GB RAM), it should be managed using the project name flag (`-p windows`). This feature allows you to control the VM from any terminal directory on your host without needing to `cd` into the folder where this `docker-compose.yml` file lives.
 
 **Initial Build (Must be run from this folder):**
     
@@ -38,6 +69,6 @@ Always use `start/stop` for daily management. If you use `docker compose -p wind
 ## Access
 
 * **Remote Desktop (RDP):** `localhost:3389`
-* **Web UI (VNC):** `http://localhost/windows/` (Routed via NGINX)
+* **Web UI (VNC):** `http://localhost:8006`
 * **Shared Folders:** Host folders mapped with the `:z` flag will appear in Windows under the `\\host.lan\` network drive.
   * **What is the `:z` flag?** This is required on Linux distributions that enforce **SELinux** security policies (such as Fedora, RHEL, and CentOS). It instructs SELinux to automatically relabel the host directory's security context, explicitly granting the Docker container the legal rights to read and write to those files. Without the `:z` flag, SELinux will silently block the VM from interacting with the shared folder.
