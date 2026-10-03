@@ -1,4 +1,5 @@
 # Windows 10 LTSC Development VM
+> **Note:** If you want to run this VM independently without the `uni-infra` host network, please refer to the [Standalone Configuration](README-standalone.md).
 
 This container provisions a fully hardware-accelerated Windows 10 LTSC virtual machine using KVM passthrough. It is attached to the shared university bridge network, allowing direct access to the isolated PostgreSQL and NGINX containers running on the host.
 
