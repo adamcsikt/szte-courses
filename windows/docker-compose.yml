@@ -1,0 +1,40 @@
+name: windows
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+networks:
+  public-network:
+    name: uni-infra_public-network
+    external: true
+
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows10-ltsc
+    logging: *default-logging
+    privileged: true
+    environment:
+      VERSION: "10l"
+      RAM_SIZE: "6G"
+      CPU_CORES: "4"
+      CPU_MODEL: "EPYC-Milan"
+      TZ: "Europe/Budapest"
+    devices:
+      - /dev/kvm
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 3389:3389/tcp
+      - 3389:3389/udp
+    volumes:
+      - ./win_storage_docker:/storage
+      - ../courses/alkalmazasfejlesztes_2-IB570:/shared:z
+      - ./oem:/oem:z
+    stop_grace_period: 2m
+    networks:
+      public-network:
+        ipv4_address: 172.28.1.12
