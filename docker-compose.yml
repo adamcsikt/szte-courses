@@ -59,7 +59,7 @@ services:
         ipv4_address: 172.28.1.11
       private-network:
         ipv4_address: 172.28.2.11
-    restart: always
+    restart: unless-stopped
     env_file:
       - ./infra/environments/pgadmin.env
     volumes:
