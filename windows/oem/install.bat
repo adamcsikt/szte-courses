@@ -31,5 +31,13 @@ echo Installing VC++ Redistributable... >> "%LOG%"
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://aka.ms/vs/17/release/vc_redist.x64.exe' -OutFile '%TEMP%\vc_redist.x64.exe'"
 start /wait "" "%TEMP%\vc_redist.x64.exe" /install /quiet /norestart
 
+:: --- Fix MSBuild .resx Internet Zone Error for /shared volume ---
+echo Whitelisting host.lan for MSBuild... >> "%LOG%"
+:: 1. Globally allow MSBuild to process untrusted resource files
+reg add "HKLM\SOFTWARE\Microsoft\.NETFramework\SDK" /v AllowProcessOfUntrustedResourceFiles /t REG_SZ /d "true" /f >> "%LOG%" 2>&1
+
+:: 2. Map the dockurr/windows network share (host.lan) to the Local Intranet zone for all users
+powershell -NoProfile -Command "New-Item -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains\host.lan' -Force | Out-Null; New-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains\host.lan' -Name 'file' -Value 1 -PropertyType DWord -Force" >> "%LOG%" 2>&1
+
 echo [%date% %time%] Provisioning finished >> "%LOG%"
 endlocal
