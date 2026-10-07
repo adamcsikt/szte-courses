@@ -13,20 +13,12 @@ namespace Common.Database
         public DbSet<Product> Products { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //okt.inf.szte.hu-s javaslat
-            //optionsBuilder.UseSqlite("Data Source=absolute/path/to/the/apiary.sqlite");
-
-            // ha jól működik a lenti, akkor a következő sorokat lehet használni a helyi AppData mappában történő tároláshoz
-            string localAppData =
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-            string databaseDirectory =
-                Path.Combine(localAppData, "Apiary", "db");
+            // Set the database path relative to the application's execution directory
+            string databaseDirectory = Path.Combine(AppContext.BaseDirectory, "db");
 
             Directory.CreateDirectory(databaseDirectory);
 
-            string databasePath =
-                Path.Combine(databaseDirectory, "apiary.sqlite");
+            string databasePath = Path.Combine(databaseDirectory, "apiary.sqlite");
 
             optionsBuilder.UseSqlite($"Data Source={databasePath}");
         }

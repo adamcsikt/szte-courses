@@ -12,6 +12,8 @@ namespace Common.Database
         public SQLiteDatabase()
         {
             context = new ApiaryContext();
+
+            context.Database.EnsureCreated();
         }
 
         public void Dispose()
